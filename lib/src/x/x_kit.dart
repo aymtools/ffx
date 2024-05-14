@@ -361,11 +361,12 @@ mixin XLifecycleStateMixin<W extends StatefulWidget> on State<W>
   X get x => _x;
 }
 
-mixin XElementMixin on ComponentElement implements IXState<XWidget> {
+mixin XElementMixin<XW extends XWidget> on ComponentElement
+    implements IXState<XW> {
   @override
   XWidget get widget => super.widget as XWidget;
 
-  final X _x = X._();
+  final X<XW> _x = X._();
 
   Cancellable Function() get cancellableProvider;
 
@@ -388,8 +389,7 @@ mixin XElementMixin on ComponentElement implements IXState<XWidget> {
     super.mount(parent, newSlot);
   }
 
-  late final XStateDelegate<XWidget> _delegate =
-      XStateDelegate(cancellableProvider);
+  late final XStateDelegate<XW> _delegate = XStateDelegate(cancellableProvider);
 
   @override
   void rebuild({bool force = false}) {
@@ -433,7 +433,7 @@ mixin XElementMixin on ComponentElement implements IXState<XWidget> {
     _xs.remove(widget);
     super.update(newWidget);
     _xs[widget] = _x;
-    _delegate.didUpdateWidget(oldWidget, newWidget as XWidget);
+    _delegate.didUpdateWidget(oldWidget as XW, newWidget as XW);
   }
 
   @override
@@ -454,7 +454,7 @@ mixin XElementMixin on ComponentElement implements IXState<XWidget> {
 
   @override
   void addOnUpdateWidgetListener(
-          void Function(XWidget widget, XWidget oldWidget) listener,
+          void Function(XW widget, XW oldWidget) listener,
           {Cancellable? removable}) =>
       _delegate.addOnUpdateWidgetListener(listener, removable: removable);
 
@@ -463,8 +463,8 @@ mixin XElementMixin on ComponentElement implements IXState<XWidget> {
       _delegate.makeCancellable(father: father);
 }
 
-class XElement extends ComponentElement
-    with LifecycleObserverRegistryElementMixin, XElementMixin {
+class XElement<XW extends XWidget> extends ComponentElement
+    with LifecycleObserverRegistryElementMixin, XElementMixin<XW> {
   XElement(super.widget);
 
   @override
@@ -508,4 +508,3 @@ X? _findParent(Element element) {
 }
 
 final Map<XWidget, X> _xs = weak.WeakMap<XWidget, X>();
-

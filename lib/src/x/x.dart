@@ -1,6 +1,6 @@
+import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:cancellable/cancellable.dart';
-import 'package:ffx/src/tools/lifecycle_ext.dart';
 import 'package:flutter/material.dart';
 import 'package:weak_collections/weak_collections.dart' as weak;
 
@@ -42,10 +42,12 @@ abstract class XWidget extends Widget {
   Widget build(BuildContext context);
 
   @override
-  XElement createElement() => XElement(this);
+  XElement createElement() => _createElement();
 }
 
 extension XWidgetExt<W extends XWidget> on W {
   @protected
   X<W> get x => _xs[this] as X<W>;
+
+  XElement<W> _createElement() => XElement<W>(this);
 }

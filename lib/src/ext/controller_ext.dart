@@ -1,4 +1,3 @@
-// which attracts less attention.
 import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:flutter/foundation.dart';
