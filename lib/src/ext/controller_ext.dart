@@ -107,7 +107,7 @@ extension CancellableStateExt on X {
     return _makers.putIfAbsent(this, () {
       _Maker maker = _Maker();
       mountable.onCancel.then((value) => maker.dispose());
-      xState.addOnActivateListener((_) {
+      mockState.addOnActivateListener((_) {
         maker.context = WeakReference(context);
         maker.activate();
       });

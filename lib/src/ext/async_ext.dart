@@ -21,9 +21,9 @@ sealed class AsyncNotifier<T> {
 }
 
 class AsyncValue<T> extends AsyncNotifier<T> {
-  final T value;
+  final T data;
 
-  AsyncValue(this.value);
+  AsyncValue(this.data);
 }
 
 class AsyncWaiting<T> extends AsyncNotifier<T> {}

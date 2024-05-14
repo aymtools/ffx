@@ -38,7 +38,7 @@ class XVKey<T> {
 extension XExt on X {
   _XValues get _vs => _xvs.putIfAbsent(this, () {
         final vs = _XValues();
-        xState.addOnChangeDependenciesListener((_) {
+        mockState.addOnChangeDependenciesListener((_) {
           vs._dependentValues.clear();
         });
 

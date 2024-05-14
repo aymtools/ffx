@@ -4,19 +4,20 @@ import 'package:cancellable/cancellable.dart';
 import 'package:flutter/material.dart';
 import 'package:weak_collections/weak_collections.dart' as weak;
 
+part 'x_element.dart';
 part 'x_kit.dart';
 
-class X<W extends Widget> {
+class X {
   X._();
 
   BuildContext? _context;
 
-  IXState<W>? _xState;
+  IX? _mockState;
   LifecycleObserverRegistry? _lifecycleORegistry;
 
   BuildContext get context => _context!;
 
-  IXState<W> get xState => _xState!;
+  IX get mockState => _mockState!;
 
   LifecycleObserverRegistry get lifecycleORegistry => _lifecycleORegistry!;
 
@@ -42,12 +43,10 @@ abstract class XWidget extends Widget {
   Widget build(BuildContext context);
 
   @override
-  XElement createElement() => _createElement();
+  XElement createElement() => XElement(this);
 }
 
 extension XWidgetExt<W extends XWidget> on W {
   @protected
-  X<W> get x => _xs[this] as X<W>;
-
-  XElement<W> _createElement() => XElement<W>(this);
+  X get x => _xs[this] as X;
 }
