@@ -36,10 +36,8 @@ class AsyncError<T> extends AsyncNotifier<T> {
 }
 
 extension XAsyncExt on X {
-  ValueNotifier<AsyncNotifier<T>> rememberAsyncNotifier<T>(
-      Future<T> Function() value,
-      {Object? key,
-      bool toLocal = false}) {
+  AsyncNotifier<T> rememberAsyncNotifier<T>(Future<T> Function() value,
+      {Object? key, bool toLocal = false}) {
     ValueNotifier<AsyncNotifier<T>> init() {
       final result =
           mutableStateOf<AsyncNotifier<T>>(AsyncNotifier<T>.waiting());
@@ -63,14 +61,11 @@ extension XAsyncExt on X {
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);
-    return r;
+    return r.value;
   }
 
-  ValueNotifier<AsyncNotifier<T>> rememberAsyncNotifierStream<T>(
-      Stream<T> Function() value,
-      {Object? key,
-      bool toLocal = false,
-      bool? cancelOnError}) {
+  AsyncNotifier<T> rememberAsyncNotifierStream<T>(Stream<T> Function() value,
+      {Object? key, bool toLocal = false, bool? cancelOnError}) {
     ValueNotifier<AsyncNotifier<T>> init() {
       final result =
           mutableStateOf<AsyncNotifier<T>>(AsyncNotifier<T>.waiting());
@@ -98,10 +93,10 @@ extension XAsyncExt on X {
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);
-    return r;
+    return r.value;
   }
 
-  ValueNotifier<AsyncNotifier<T>> rememberAsyncNotifierCollectOnLifecycle<T>(
+  AsyncNotifier<T> rememberAsyncNotifierCollectOnLifecycle<T>(
       Future<T> Function() value,
       {Object? key,
       bool toLocal = false,
@@ -139,6 +134,6 @@ extension XAsyncExt on X {
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);
-    return r;
+    return r.value;
   }
 }
