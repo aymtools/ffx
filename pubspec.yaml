@@ -1,6 +1,6 @@
 name: ffx
 description: "ffx is a brand new life cycle + state management tool in flutter. It is intended to solve the templating problem written by StatefulWidget, simplify the code, and improve work efficiency."
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/aymtools/ffx/
 issue_tracker: https://github.com/aymtools/ffx/issues
 topics:

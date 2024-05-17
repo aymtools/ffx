@@ -2,13 +2,18 @@ import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:flutter/material.dart';
 
-ValueNotifier<T> mutableStateOf<T>(T value) => ValueNotifier(value);
+ValueNotifier<T> mutableStateWith<T>(T value) => ValueNotifier(value);
 
-ValueNotifier<int> mutableIntStateOf(int value) => mutableStateOf(value);
+ValueNotifier<T> Function() mutableStateOf<T>(T value) =>
+    () => ValueNotifier(value);
 
-ValueNotifier<bool> mutableBoolStateOf(bool value) => mutableStateOf(value);
+ValueNotifier<int> Function() mutableIntStateOf(int value) =>
+    mutableStateOf<int>(value);
 
-ValueNotifier<double> mutableDoubleStateOf(double value) =>
+ValueNotifier<bool> Function() mutableBoolStateOf(bool value) =>
+    mutableStateOf(value);
+
+ValueNotifier<double> Function() mutableDoubleStateOf(double value) =>
     mutableStateOf(value);
 
 extension XFExt on X {
@@ -24,17 +29,19 @@ extension XFExt on X {
         key: 'rootNavigator',
       );
 
-  ValueNotifier<T> rememberValueNotifier<T>(T Function() value,
-      {Object? key, bool toLocal = false}) {
-    ValueNotifier<T> init() => mutableStateOf(value());
+  ValueNotifier<T> rememberValue<T>(T Function() value) {
+    return rememberValueNotifier(mutableStateOf(value()));
+  }
 
+  ValueNotifier<T> rememberValueNotifier<T>(ValueNotifier<T> Function() value,
+      {Object? key, bool toLocal = false}) {
     final vk = XVKey<ValueNotifier<T>>(key: key);
 
     ValueNotifier<T> r;
     if (toLocal) {
-      r = remember2Local(init, key: vk);
+      r = remember2Local(value, key: vk);
     } else {
-      r = remember<ValueNotifier<T>>(init, key: vk);
+      r = remember<ValueNotifier<T>>(value, key: vk);
     }
     addToListenableSingleMarkNeedsBuildListener(r);
     return r;

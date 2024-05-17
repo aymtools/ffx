@@ -1,43 +1,43 @@
 import 'dart:async';
 
-import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:cancellable/cancellable.dart';
+import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/ext/f_ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:flutter/widgets.dart';
 
-sealed class AsyncNotifier<T> {
-  AsyncNotifier();
+sealed class AsyncValue<T> {
+  AsyncValue();
 
-  factory AsyncNotifier.loading() => AsyncWaiting<T>();
+  factory AsyncValue.loading() => AsyncWaiting<T>();
 
-  factory AsyncNotifier.waiting() => AsyncWaiting<T>();
+  factory AsyncValue.waiting() => AsyncWaiting<T>();
 
-  factory AsyncNotifier.error(
+  factory AsyncValue.error(
           {required Object? error, StackTrace? stackTrace}) =>
       AsyncError<T>(error: error, stackTrace: stackTrace);
 
-  factory AsyncNotifier.value(T value) => AsyncValue(value);
+  factory AsyncValue.value(T value) => AsyncData(value);
 }
 
-class AsyncValue<T> extends AsyncNotifier<T> {
+class AsyncData<T> extends AsyncValue<T> {
   final T data;
 
-  AsyncValue(this.data);
+  AsyncData(this.data);
 }
 
-class AsyncWaiting<T> extends AsyncNotifier<T> {}
+class AsyncWaiting<T> extends AsyncValue<T> {}
 
-class AsyncError<T> extends AsyncNotifier<T> {
+class AsyncError<T> extends AsyncValue<T> {
   final Object? error;
   final StackTrace? stackTrace;
 
   AsyncError({required this.error, this.stackTrace});
 }
 
-class _AsyncNotifierStream<T, A> {
+class _AsyncValueStream<T, A> {
   final StreamController<T> controller = StreamController();
 
   Stream<T> get stream => controller.stream;
@@ -55,7 +55,7 @@ class _AsyncNotifierStream<T, A> {
 
   Cancellable cancellable;
 
-  _AsyncNotifierStream(this.value, this._agrs, this.cancellable) {
+  _AsyncValueStream(this.value, this._agrs, this.cancellable) {
     controller.bindCancellable(cancellable);
     _listenArg();
     reload();
@@ -93,24 +93,24 @@ class _AsyncNotifierStream<T, A> {
 }
 
 extension XAsyncExt on X {
-  AsyncNotifier<T> rememberAsyncNotifier<T>(Future<T> Function() value,
+  AsyncValue<T> rememberAsyncValue<T>(Future<T> Function() value,
       {Object? key, bool toLocal = false}) {
-    ValueNotifier<AsyncNotifier<T>> init() {
+    ValueNotifier<AsyncValue<T>> init() {
       final result =
-          mutableStateOf<AsyncNotifier<T>>(AsyncNotifier<T>.waiting());
+          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
       final future = value();
       future
           .bindCancellable(mountable)
-          .then((v) => result.value = AsyncNotifier.value(v))
+          .then((v) => result.value = AsyncValue.value(v))
           .onError((error, stackTrace) => result.value =
-              AsyncNotifier.error(error: error, stackTrace: stackTrace))
+              AsyncValue.error(error: error, stackTrace: stackTrace))
           .ignore();
       return result;
     }
 
     final vk = XVKey<ValueNotifier<T>>(key: key);
 
-    ValueNotifier<AsyncNotifier<T>> r;
+    ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {
@@ -121,32 +121,32 @@ extension XAsyncExt on X {
     return r.value;
   }
 
-  AsyncNotifier<T> rememberAsyncNotifierArgs<T, Args>(
+  AsyncValue<T> rememberAsyncValueAndArg<T, Args>(
       FutureOr<T> Function(Args) value, Args args,
       {Object? key, bool toLocal = false}) {
     final ans = remember(
-        () => _AsyncNotifierStream<T, Args>(value, args, mountable),
+        () => _AsyncValueStream<T, Args>(value, args, mountable),
         listen: false,
         key: key);
     ans.args = args;
-    return rememberAsyncNotifierStream(() => ans.stream,
+    return rememberAsyncValueStream(() => ans.stream,
         key: XVKey<T>(key: [key, Args]));
   }
 
-  AsyncNotifier<T> rememberAsyncNotifierStream<T>(Stream<T> Function() value,
+  AsyncValue<T> rememberAsyncValueStream<T>(Stream<T> Function() value,
       {Object? key, bool toLocal = false, bool? cancelOnError}) {
-    ValueNotifier<AsyncNotifier<T>> init() {
+    ValueNotifier<AsyncValue<T>> init() {
       final result =
-          mutableStateOf<AsyncNotifier<T>>(AsyncNotifier<T>.waiting());
+          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
       final stream = value();
       stream.bindCancellable(mountable).listen(
             (event) {
-              result.value = AsyncNotifier.value(event);
+              result.value = AsyncValue.value(event);
             },
             cancelOnError: cancelOnError,
             onError: (error, stackTrace) {
               result.value =
-                  AsyncNotifier.error(error: error, stackTrace: stackTrace);
+                  AsyncValue.error(error: error, stackTrace: stackTrace);
             },
           );
       return result;
@@ -154,7 +154,7 @@ extension XAsyncExt on X {
 
     final vk = XVKey<ValueNotifier<T>>(key: key);
 
-    ValueNotifier<AsyncNotifier<T>> r;
+    ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {
@@ -165,15 +165,15 @@ extension XAsyncExt on X {
     return r.value;
   }
 
-  AsyncNotifier<T> rememberAsyncNotifierCollectOnLifecycle<T>(
+  AsyncValue<T> rememberAsyncValueCollectOnLifecycle<T>(
       Future<T> Function() value,
       {Object? key,
       bool toLocal = false,
       bool? cancelOnError,
       LifecycleState targetState = LifecycleState.started}) {
-    ValueNotifier<AsyncNotifier<T>> init() {
+    ValueNotifier<AsyncValue<T>> init() {
       final result =
-          mutableStateOf<AsyncNotifier<T>>(AsyncNotifier<T>.waiting());
+          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
       final stream = lifecycleORegistry.collectOnLifecycle<T>(
         block: (Cancellable cancellable) =>
             value().bindCancellable(cancellable),
@@ -182,12 +182,12 @@ extension XAsyncExt on X {
       );
       stream.bindCancellable(mountable).listen(
             (event) {
-              result.value = AsyncNotifier.value(event);
+              result.value = AsyncValue.value(event);
             },
             cancelOnError: cancelOnError,
             onError: (error, stackTrace) {
               result.value =
-                  AsyncNotifier.error(error: error, stackTrace: stackTrace);
+                  AsyncValue.error(error: error, stackTrace: stackTrace);
             },
           );
       return result;
@@ -195,7 +195,7 @@ extension XAsyncExt on X {
 
     final vk = XVKey<ValueNotifier<T>>(key: key);
 
-    ValueNotifier<AsyncNotifier<T>> r;
+    ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {

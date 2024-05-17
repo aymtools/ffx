@@ -26,7 +26,7 @@ class FirstPage extends XWidget {
 
   @override
   Widget build(BuildContext context) {
-    final counter = x.remember(() => mutableIntStateOf(0));
+    final counter = x.remember(mutableIntStateOf(0));
     return Scaffold(
       appBar: AppBar(
         backgroundColor: x.theme.colorScheme.inversePrimary,
