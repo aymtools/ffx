@@ -12,7 +12,6 @@ ValueNotifier<bool> mutableBoolStateOf(bool value) => mutableStateOf(value);
 ValueNotifier<double> mutableDoubleStateOf(double value) =>
     mutableStateOf(value);
 
-Map<Listenable, void Function()> _singleMarkNeedsBuild = weak.WeakMap();
 
 extension XFExt on X {
   ThemeData get theme => remember2Dependent(() => Theme.of(context));
@@ -26,15 +25,6 @@ extension XFExt on X {
         () => Navigator.of(context, rootNavigator: true),
         key: 'rootNavigator',
       );
-
-  void addToListenableSingleMarkNeedsBuildListener(Listenable listenable) {
-    _singleMarkNeedsBuild.putIfAbsent(listenable, () {
-      final l = markNeedsBuild;
-      listenable.addListener(l);
-      mountable.onCancel.then((value) => listenable.removeListener(l));
-      return l;
-    });
-  }
 
   ValueNotifier<T> rememberValueNotifier<T>(T Function() value,
       {Object? key, bool toLocal = false}) {
@@ -63,4 +53,18 @@ extension XFExt on X {
   }
 
   T getValue<T>({Object? key}) => find<ValueNotifier<T>>(key: key)!.value;
+
+  T getByRouteArguments<T>() {
+    final settings = remember2Dependent(() => ModalRoute.of(context)!.settings);
+    return settings.arguments as T;
+  }
+
+  T getByRoute<T, I>({required T Function(I arguments) block}) {
+    final settings = remember2Dependent(() => ModalRoute.of(context)!.settings);
+    return block(settings.arguments as I);
+  }
+
+  T getByRouteMap<T>({required String key}) {
+    return getByRoute<T, Map>(block: (a) => a[key]);
+  }
 }

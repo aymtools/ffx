@@ -99,12 +99,12 @@ class _Maker implements TickerProvider {
   }
 }
 
-Map<X, _Maker> _makers = {};
-Map<X, KeepAliveHandle> _keepAlive = {};
+// Map<X, _Maker> _makers = {};
+// Map<X, KeepAliveHandle> _keepAlive = {};
 
 extension CancellableStateExt on X {
   TickerProvider rememberTickerProvider() {
-    return _makers.putIfAbsent(this, () {
+    final factoryTickerProvider = remember(() {
       _Maker maker = _Maker();
       mountable.onCancel.then((value) => maker.dispose());
       mockState.addOnActivateListener((_) {
@@ -112,12 +112,13 @@ extension CancellableStateExt on X {
         maker.activate();
       });
       return maker;
-    });
+    }, key: 'TickerProvider');
+    return factoryTickerProvider;
   }
 
   bool rememberKeepAlive(bool wantKeepAlive) {
-    return remember(() {
-      KeepAliveHandle? handle = _keepAlive[this];
+    remember(() {
+      KeepAliveHandle? handle;
       void ensureKeepAlive() {
         assert(handle == null);
         handle = KeepAliveHandle();
@@ -140,8 +141,9 @@ extension CancellableStateExt on X {
           releaseKeepAlive();
         }
       }
-      return wantKeepAlive;
+      return handle;
     }, key: ['wantKeepAlive']);
+    return wantKeepAlive;
   }
 
   AnimationController rememberAnimationController({
@@ -172,7 +174,7 @@ extension CancellableStateExt on X {
       lowerBound,
       upperBound,
       animationBehavior
-    ]);
+    ], listen: false);
   }
 
   AnimationController rememberAnimationControllerUnbounded({
@@ -192,7 +194,9 @@ extension CancellableStateExt on X {
           vsync: rememberTickerProvider());
       mountable.onCancel.then((value) => result.dispose());
       return result;
-    }, key: ['Unbounded', value, duration, reverseDuration, animationBehavior]);
+    },
+        key: ['Unbounded', value, duration, reverseDuration, animationBehavior],
+        listen: false);
   }
 
   TabController rememberTabController(
@@ -207,6 +211,6 @@ extension CancellableStateExt on X {
           vsync: rememberTickerProvider());
       mountable.onCancel.then((value) => result.dispose());
       return result;
-    }, key: [initialIndex, animationDuration, length]);
+    }, key: [initialIndex, animationDuration, length], listen: false);
   }
 }

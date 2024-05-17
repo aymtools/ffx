@@ -1,5 +1,7 @@
+import 'package:ffx/src/ext/f_ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:weak_collections/weak_collections.dart' as weak;
 
 class _XValues {
@@ -35,6 +37,9 @@ class XVKey<T> {
   }
 }
 
+Map<Listenable, weak.WeakSet<void Function()>> _singleMarkNeedsBuild =
+    weak.WeakMap();
+
 extension XExt on X {
   _XValues get _vs => _xvs.putIfAbsent(this, () {
         final vs = _XValues();
@@ -50,22 +55,45 @@ extension XExt on X {
         return vs;
       });
 
-  T remember<T>(T Function() value, {Object? key}) {
+  void addToListenableSingleMarkNeedsBuildListener(Listenable listenable) {
+    final ls =
+        _singleMarkNeedsBuild.putIfAbsent(listenable, () => weak.WeakSet());
+    final l = markNeedsBuild;
+    if (ls.contains(l)) return;
+    WeakReference<Listenable> target = WeakReference(listenable);
+    listenable.addListener(l);
+    ls.add(l);
+    mountable.onCancel.then((value) {
+      ls.remove(l);
+      final listenable = target.target;
+      if (listenable == null) return;
+      listenable.removeListener(l);
+      if (ls.isEmpty) _singleMarkNeedsBuild.remove(listenable);
+    });
+  }
+
+  T remember<T>(T Function() value, {Object? key, bool listen = true}) {
     final vk = XVKey<T>(key: key);
     var f = _find<T>(vk, inDependentValues: false, inLocalValues: false);
     if (f != null) return f;
     f = value();
+    if (listen && f is Listenable) {
+      addToListenableSingleMarkNeedsBuildListener(f);
+    }
     _vs._values[vk] = f;
     return f as T;
   }
 
-  T remember2Local<T>(T Function() value, {Object? key}) {
+  T remember2Local<T>(T Function() value, {Object? key, bool listen = true}) {
     final vk = XVKey<T>(key: key);
     var f = _find<T>(vk, inValues: false, inDependentValues: false);
     if (f != null) return f;
     f = parent?._find<T>(vk, inValues: false, inDependentValues: false);
     if (f != null) return f;
     f = value();
+    if (listen && f is Listenable) {
+      addToListenableSingleMarkNeedsBuildListener(f);
+    }
     _vs._localValues[vk] = f;
     return f as T;
   }
@@ -75,6 +103,9 @@ extension XExt on X {
     var f = _find<T>(vk, inValues: false, inLocalValues: false);
     if (f != null) return f;
     f = value();
+    // if (listen && f is Listenable) {
+    //   addToListenableSingleMarkNeedsBuildListener(f);
+    // }
     _vs._dependentValues[vk] = f;
     return f as T;
   }
@@ -101,10 +132,20 @@ extension XExt on X {
       {Object? key,
       bool inValues = true,
       bool inDependentValues = true,
-      bool inLocalValues = true}) {
+      bool inLocalValues = true,
+      bool listen = true}) {
     final vk = XVKey<T>(key: key);
-    return _find(vk);
+    final f = _find<T>(vk);
+    if (listen && f is Listenable) {
+      addToListenableSingleMarkNeedsBuildListener(f);
+    }
+    return f;
   }
 
-  T get<T>({Object? key}) => find(key: key) as T;
+  T get<T>({Object? key, bool listen = false}) {
+    T? result = find(key: key, listen: listen);
+    result ??= find<ValueListenable<T>>(key: key, listen: listen)?.value;
+
+    return result as T;
+  }
 }

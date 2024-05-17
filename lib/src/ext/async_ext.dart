@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:cancellable/cancellable.dart';
@@ -35,6 +37,61 @@ class AsyncError<T> extends AsyncNotifier<T> {
   AsyncError({required this.error, this.stackTrace});
 }
 
+class _AsyncNotifierStream<T, A> {
+  final StreamController<T> controller = StreamController();
+
+  Stream<T> get stream => controller.stream;
+  FutureOr<T> Function(A) value;
+
+  Cancellable? lastArgs;
+  A _agrs;
+
+  set args(A args) {
+    if (args == _agrs) return;
+    _agrs = args;
+    _listenArg();
+    reload();
+  }
+
+  Cancellable cancellable;
+
+  _AsyncNotifierStream(this.value, this._agrs, this.cancellable) {
+    controller.bindCancellable(cancellable);
+    _listenArg();
+    reload();
+  }
+
+  _listenArg() {
+    lastArgs?.cancel();
+    final a = _agrs;
+    if (a is Listenable) {
+      a.addListener(reload);
+      lastArgs = cancellable.makeCancellable();
+      lastArgs?.onCancel.then((_) => a.removeListener(reload));
+    }
+  }
+
+  Cancellable? _loading;
+
+  void reload() {
+    _loading?.cancel();
+    _loading = (lastArgs ?? cancellable).makeCancellable();
+    loading(_loading!);
+  }
+
+  void loading(Cancellable loading) async {
+    await Future.delayed(Duration.zero);
+    if (loading.isUnavailable) return;
+    var v = value(_agrs);
+    if (loading.isUnavailable) return;
+    if (v is Future<T>) {
+      v = await v;
+      if (loading.isUnavailable) return;
+    }
+    controller.add(v as T);
+  }
+}
+
 extension XAsyncExt on X {
   AsyncNotifier<T> rememberAsyncNotifier<T>(Future<T> Function() value,
       {Object? key, bool toLocal = false}) {
@@ -62,6 +119,18 @@ extension XAsyncExt on X {
 
     addToListenableSingleMarkNeedsBuildListener(r);
     return r.value;
+  }
+
+  AsyncNotifier<T> rememberAsyncNotifierArgs<T, Args>(
+      FutureOr<T> Function(Args) value, Args args,
+      {Object? key, bool toLocal = false}) {
+    final ans = remember(
+        () => _AsyncNotifierStream<T, Args>(value, args, mountable),
+        listen: false,
+        key: key);
+    ans.args = args;
+    return rememberAsyncNotifierStream(() => ans.stream,
+        key: XVKey<T>(key: [key, Args]));
   }
 
   AsyncNotifier<T> rememberAsyncNotifierStream<T>(Stream<T> Function() value,
@@ -130,7 +199,7 @@ extension XAsyncExt on X {
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {
-      r = remember<ValueNotifier<AsyncNotifier<T>>>(init, key: vk);
+      r = remember(init, key: vk);
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);
