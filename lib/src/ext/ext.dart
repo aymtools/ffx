@@ -1,4 +1,3 @@
-import 'package:ffx/src/ext/f_ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';

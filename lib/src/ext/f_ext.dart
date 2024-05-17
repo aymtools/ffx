@@ -1,7 +1,6 @@
 import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:flutter/material.dart';
-import 'package:weak_collections/weak_collections.dart' as weak;
 
 ValueNotifier<T> mutableStateOf<T>(T value) => ValueNotifier(value);
 
@@ -11,7 +10,6 @@ ValueNotifier<bool> mutableBoolStateOf(bool value) => mutableStateOf(value);
 
 ValueNotifier<double> mutableDoubleStateOf(double value) =>
     mutableStateOf(value);
-
 
 extension XFExt on X {
   ThemeData get theme => remember2Dependent(() => Theme.of(context));

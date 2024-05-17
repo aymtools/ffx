@@ -114,7 +114,7 @@ extension XAsyncExt on X {
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {
-      r = remember<ValueNotifier<AsyncNotifier<T>>>(init, key: vk);
+      r = remember(init, key: vk);
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);
@@ -158,7 +158,7 @@ extension XAsyncExt on X {
     if (toLocal) {
       r = remember2Local(init, key: vk);
     } else {
-      r = remember<ValueNotifier<AsyncNotifier<T>>>(init, key: vk);
+      r = remember(init, key: vk);
     }
 
     addToListenableSingleMarkNeedsBuildListener(r);

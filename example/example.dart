@@ -1,20 +1,25 @@
-ffx is a brand new life cycle + state management tool in flutter. It is intended to solve the
-templating problem written by StatefulWidget, simplify the code, and improve work efficiency.
+import 'package:ffx/ffx.dart';
+import 'package:flutter/material.dart';
 
-## Reason:
+void main() {
+  runApp(const MyApp());
+}
 
-There are too many template codes when writing StatefulWidget, as well as state update exceptions
-and context switching that occur with StreamBuilder. At the same time, inspired by Compose, we try
-to reduce template code as much as possible during the development process.
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
-## Usage
-
-Customize your Widget and extend XWidget, then in build() you will get an x, x provides everything
-you are familiar with
-x.remember
-x.find
-
-```dart
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'FFx Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        useMaterial3: true,
+      ),
+      home: const FirstPage(),
+    );
+  }
+}
 
 class FirstPage extends XWidget {
   const FirstPage({super.key});
@@ -51,5 +56,3 @@ class FirstPage extends XWidget {
     );
   }
 }
-```
-
