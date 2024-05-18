@@ -132,10 +132,9 @@ class XDelegate implements IX {
 }
 
 mixin XElementMixin on ComponentElement implements IX {
-  @override
-  XWidget get widget => super.widget as XWidget;
-
   final X _x = X._();
+
+  X get x => _x;
 
   Cancellable Function() get cancellableProvider;
 
@@ -149,10 +148,9 @@ mixin XElementMixin on ComponentElement implements IX {
         return false;
       }
       return true;
-    }(), 'KitElementMixin cannot be used with IKitState');
+    }(), 'XElementMixin cannot be used with IXState');
 
     _x._context = this;
-    _xs[widget] = _x;
     _x._parent = () => _findParent(this);
     _x._mockState = this;
     super.mount(parent, newSlot);
@@ -174,7 +172,6 @@ mixin XElementMixin on ComponentElement implements IX {
   void unmount() {
     _delegate.dispose();
     _x._mockState = null;
-    _xs.remove(widget);
     super.unmount();
   }
 
@@ -194,14 +191,6 @@ mixin XElementMixin on ComponentElement implements IX {
   void deactivate() {
     super.deactivate();
     _delegate.deactivate();
-  }
-
-  @override
-  void update(covariant Widget newWidget) {
-    final oldWidget = widget;
-    _xs.remove(oldWidget);
-    _xs[newWidget as XWidget] = _x;
-    super.update(newWidget);
   }
 
   @override
@@ -225,9 +214,9 @@ mixin XElementMixin on ComponentElement implements IX {
       _delegate.makeCancellable(father: father);
 }
 
-class XElement extends ComponentElement
+abstract class LifecycleXElement extends ComponentElement
     with LifecycleObserverRegistryElementMixin, XElementMixin {
-  XElement(super.widget);
+  LifecycleXElement(super.widget);
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -242,12 +231,39 @@ class XElement extends ComponentElement
   }
 
   @override
+  Cancellable Function() get cancellableProvider => makeLiveCancellable;
+}
+
+class XElement extends LifecycleXElement {
+  XElement(super.widget);
+
+  @override
+  XWidget get widget => super.widget as XWidget;
+
+  @override
   Widget build() {
     return widget.build(this);
   }
 
   @override
-  Cancellable Function() get cancellableProvider => makeLiveCancellable;
+  void mount(Element? parent, Object? newSlot) {
+    _xs[widget] = _x;
+    super.mount(parent, newSlot);
+  }
+
+  @override
+  void update(covariant Widget newWidget) {
+    final oldWidget = widget;
+    _xs.remove(oldWidget);
+    _xs[newWidget as XWidget] = _x;
+    super.update(newWidget);
+  }
+
+  @override
+  void unmount() {
+    super.unmount();
+    _xs.remove(widget);
+  }
 }
 
 X? _findParent(Element element) {
