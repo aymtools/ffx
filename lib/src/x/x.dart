@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:weak_collections/weak_collections.dart' as weak;
 
 part 'x_element.dart';
+
 part 'x_kit.dart';
 
 class X {
