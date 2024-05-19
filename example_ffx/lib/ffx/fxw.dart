@@ -1,18 +1,18 @@
 import 'package:ffx/ffx.dart';
 import 'package:flutter/material.dart';
 
-// @FxWidget()
+// @Fx()
 // Widget _app() {
 //   return Text('App');
 // }
 
-@FxWidget()
+@Fx()
 Widget _simpleText({required X x, required String text, int? fontSize}) {
   return Text(text);
 }
 
 // //不支持无法自动加入 Modifier modifier 放到最后不太合适
-// @FxWidget()
+// @Fx()
 // Widget _simpleText(String text2, X x, [String text = '', int? fontSize]) {
 //   return Text(text);
 // }

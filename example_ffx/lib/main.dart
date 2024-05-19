@@ -27,7 +27,7 @@ import 'pages/main.dart';
 
 void main() => runApp(f.MyFxApp());
 
-@FxWidget()
+@Fx()
 Widget _myFxApp() {
   return MaterialApp(
     title: 'FFx Demo',
@@ -39,12 +39,12 @@ Widget _myFxApp() {
   );
 }
 
-@FxWidget()
+@Fx()
 Widget _fxText(String data) {
   return Text(data);
 }
 
-@FxWidget()
+@Fx()
 Widget _homePage({required X x, required String title}) {
   final counter = x.remember(mutableStateOf(0));
   return Scaffold(
@@ -77,4 +77,8 @@ Widget _homePage({required X x, required String title}) {
       child: const Icon(Icons.add),
     ), // This trailing comma makes auto-formatting nicer for build methods.
   );
+}
+
+extension $X2Padding on Modifier {
+  Modifier x2Padding(double value) => fx((_, child) => child);
 }

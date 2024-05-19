@@ -12,12 +12,12 @@ class MainPage extends StatelessWidget {
   }
 }
 
-// @FxWidget()
+// @Fx()
 // Widget _mainPage() {
 //   return MainPageContent(title: 'Flutter Demo Home Page');
 // }
 
-@FxWidget()
+@Fx()
 Widget _mainPageContent({required X x, required String title}) {
   final counter = x.remember(mutableStateOf(0));
   return Scaffold(
@@ -55,7 +55,7 @@ Widget _mainPageContent({required X x, required String title}) {
   );
 }
 
-@FxWidget()
+@Fx()
 Widget _simpleText({required X x, required String text, int? fontSize}) {
   return Text(text);
 }

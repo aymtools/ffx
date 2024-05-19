@@ -11,14 +11,14 @@ final _flutterWidget = Uri.parse('package:flutter/material.dart');
 
 macro
 
-class FxWidget implements FunctionDeclarationsMacro, ClassDeclarationsMacro {
-  const FxWidget();
+class Fx implements FunctionDeclarationsMacro, ClassDeclarationsMacro {
+  const Fx();
 
   ///来翻译函数转换到widget
   @override
   FutureOr<void> buildDeclarationsForFunction(FunctionDeclaration function,
       DeclarationBuilder builder) async {
-    print('function name  ${function.identifier.name}');
+    // print('function name  ${function.identifier.name}');
 
     String functionName = function.identifier.name;
     if (!functionName.startsWith('_')) {
@@ -159,7 +159,7 @@ class FxWidget implements FunctionDeclarationsMacro, ClassDeclarationsMacro {
       ');',
       '}',
     ];
-    print(_printParts(extParts));
+    // print(_printParts(extParts));
 
     builder.declareInLibrary(DeclarationCode.fromParts(extParts));
   }
@@ -168,18 +168,106 @@ class FxWidget implements FunctionDeclarationsMacro, ClassDeclarationsMacro {
   @override
   FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) async {
+    // print('buildDeclarationsForClass ${clazz.identifier.name}');
+    // // ignore: deprecated_member_use
+    // final modifier = await builder.resolveIdentifier(_fLibrary, 'Modifier');
+    //
+    // final typedModifier = await builder.resolve(
+    //     NamedTypeAnnotationCode(name: modifier));
+    //
+    // final clazzType = await builder.resolve(
+    //     NamedTypeAnnotationCode(name: clazz.identifier));
+    // if (await clazzType.isSubtypeOf(typedModifier)) {
+    //   print('clazzType.isSubtype Modifier');
+    //   await _buildCustomModifier(clazz, builder, modifier);
+    // }
+
+
+    //   if (c.length <= 1) {
+    //     if (c.isNotEmpty) {
+    //       if (c.single.isFactory) {
+    //         throw '不可 Factory 构造函数';
+    //       } else if (c.single.identifier.name.isNotEmpty) {
+    //         throw '不可 命名 named 构造函数';
+    //       }
+    //     }
+    //   } else {
+    //     throw '过多的构造函数';
+    //   }
+  }
+
+  Future<void> _buildCustomModifier(ClassDeclaration clazz,
+      MemberDeclarationBuilder builder, Identifier modifier) async {
+    final clazzName = clazz.identifier.name;
     final c = await builder.constructorsOf(clazz);
-    if (c.length <= 1) {
-      if (c.isNotEmpty) {
-        if (c.single.isFactory) {
-          throw '不可 Factory 构造函数';
-        } else if (c.single.identifier.name.isNotEmpty) {
-          throw '不可 命名 named 构造函数';
-        }
-      }
-    } else {
-      throw '过多的构造函数';
+    final constructors = c.where((e) => !e.isFactory);
+    final extName = _cModifierExtName(clazzName);
+    if (extName.isEmpty) {
+      throw DiagnosticException(Diagnostic(
+          DiagnosticMessage(
+              'FX The name must be included when customizing the Modifier',
+              target: clazz.asDiagnosticTarget),
+          Severity.error));
     }
+    List parts = [];
+    if (constructors.isEmpty) {
+      parts.addAll([
+        modifier,
+        ' ',
+        extName,
+        '()',
+        ' => ',
+        'then(',
+        clazz.identifier,
+        '()',
+        ')',
+      ]);
+    } else {
+      for (var c in constructors) {
+        final cName = c.identifier.name.capitalize;
+        parts.addAll([
+          modifier,
+          ' ',
+          extName,
+          cName,
+          '(',
+          ')',
+          ' => ',
+          'then(',
+          clazz.identifier,
+          if(cName.isNotEmpty)'.',
+          if(cName.isNotEmpty)c.identifier.name,
+          '(',
+          ')',
+          ')',
+        ]);
+      }
+    }
+
+
+    List codes = [
+      'extension \$$clazzName on ',
+      modifier,
+      ' {',
+      ...parts,
+      '}',
+    ];
+
+    print(_printParts(codes));
+  }
+
+  String _cModifierExtName(String clazzName) {
+    String extName = clazzName;
+    while (extName.startsWith('_')) {
+      extName = extName.substring(1);
+    }
+    while (extName.toLowerCase().startsWith('modifier')) {
+      extName = extName.substring(8);
+    }
+    while (extName.toLowerCase().endsWith('modifier')) {
+      extName = extName.substring(0, extName.length - 8);
+    }
+    return extName.uncapitalize;
   }
 
 }
@@ -203,9 +291,11 @@ String _printParts(Iterable parts) {
   return msg;
 }
 extension _ on String {
-  String get capitalize => '${this[0].toUpperCase()}${substring(1)}';
+  String get capitalize =>
+      isEmpty ? '' : '${this[0].toUpperCase()}${substring(1)}';
 
-  String get uncapitalize => '${this[0].toLowerCase()}${substring(1)}';
+  String get uncapitalize =>
+      isEmpty ? '' : '${this[0].toLowerCase()}${substring(1)}';
 }
 
 class TypedFormalParameterDeclaration {

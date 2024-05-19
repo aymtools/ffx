@@ -1,6 +1,7 @@
 part of 'f.dart';
 
 abstract interface class Modifier {
+  @protected
   Widget apply(X x, Widget child);
 }
 
@@ -25,39 +26,45 @@ class CombinedModifier implements Modifier {
   }
 }
 
-class _PaddingModifier implements Modifier {
-  final EdgeInsetsGeometry padding;
+extension ModifierThenExt on Modifier {
+  @protected
+  Modifier then(Modifier other) => CombinedModifier(inner: this, outer: other);
+}
 
-  _PaddingModifier(this.padding);
+class _ModifierFx implements Modifier {
+  final Widget Function(X x, Widget child) fx;
 
-  _PaddingModifier.all(double value) : padding = EdgeInsets.all(value);
+  _ModifierFx(this.fx);
 
   @override
   Widget apply(X x, Widget child) {
-    return Padding(padding: padding, child: child);
+    return fx(x, child);
   }
+}
+
+extension $ModifierFxExt on Modifier {
+  Modifier fx(Widget Function(X x, Widget child) fx) =>
+      CombinedModifier(inner: this, outer: _ModifierFx(fx));
 }
 
 extension $PaddingModifier on Modifier {
   Modifier padding(EdgeInsetsGeometry padding) =>
-      CombinedModifier(inner: this, outer: _PaddingModifier(padding));
+      fx((_, child) => Padding(padding: padding));
 
   Modifier paddingAll(double value) =>
-      CombinedModifier(inner: this, outer: _PaddingModifier.all(value));
-}
+      fx((_, child) => Padding(padding: EdgeInsets.all(value)));
 
-class _TextStyleModifier implements Modifier {
-  final TextStyle style;
-
-  _TextStyleModifier(this.style);
-
-  @override
-  Widget apply(X x, Widget child) {
-    return DefaultTextStyle.merge(style: style, child: child);
-  }
+  Modifier paddingOnly(
+          {double left = 0,
+          double top = 0,
+          double right = 0,
+          double bottom = 0}) =>
+      fx((_, child) => Padding(
+          padding: EdgeInsets.only(
+              left: left, top: top, right: right, bottom: bottom)));
 }
 
 extension $TextStyleModifier on Modifier {
   Modifier textStyle(TextStyle style) =>
-      CombinedModifier(inner: this, outer: _TextStyleModifier(style));
+      fx((_, child) => DefaultTextStyle.merge(style: style, child: child));
 }
