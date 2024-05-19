@@ -253,16 +253,27 @@ class XElement extends LifecycleXElement {
 
   @override
   void update(covariant Widget newWidget) {
-    final oldWidget = widget;
-    _xs.remove(oldWidget);
-    _xs[newWidget as XWidget] = _x;
+    if (newWidget != widget) {
+      final oldWidget = widget;
+      _xs.remove(oldWidget);
+      _xs[newWidget as XWidget] = _x;
+    }
     super.update(newWidget);
   }
 
   @override
   void unmount() {
+    final w = widget;
     super.unmount();
-    _xs.remove(widget);
+    _xs.remove(w);
+  }
+
+  @mustCallSuper
+  @protected
+  @override
+  void reassemble() {
+    _xs[widget] = _x;
+    super.reassemble();
   }
 }
 
