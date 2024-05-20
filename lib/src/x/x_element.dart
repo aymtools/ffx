@@ -247,16 +247,21 @@ class XElement extends LifecycleXElement {
 
   @override
   void mount(Element? parent, Object? newSlot) {
-    _xs[widget] = _x;
+    // _xs[widget] = _x;
+    widget._xTarget._x = WeakReference(_x);
+    // print('mount $widget');
     super.mount(parent, newSlot);
   }
 
   @override
   void update(covariant Widget newWidget) {
     if (newWidget != widget) {
-      final oldWidget = widget;
-      _xs.remove(oldWidget);
-      _xs[newWidget as XWidget] = _x;
+      // final oldWidget = widget;
+      // _xs.remove(oldWidget);
+      // _xs[newWidget as XWidget] = _x;
+      // widget._xTarget._x = null;
+      (newWidget as XWidget)._xTarget._x = WeakReference(_x);
+      // print('update(covariant Widget newWidget) $widget');
     }
     super.update(newWidget);
   }
@@ -265,15 +270,24 @@ class XElement extends LifecycleXElement {
   void unmount() {
     final w = widget;
     super.unmount();
-    _xs.remove(w);
+    // _xs.remove(w);
+    // w._xTarget._x = null;
+    // print('unmount $widget');
   }
 
   @mustCallSuper
   @protected
   @override
   void reassemble() {
-    _xs[widget] = _x;
+    // _xs[widget] = _x;
+    widget._xTarget._x = WeakReference(_x);
     super.reassemble();
+  }
+
+  @override
+  void activate() {
+    widget._xTarget._x = WeakReference(_x);
+    super.activate();
   }
 }
 
@@ -296,4 +310,4 @@ X? _findParent(Element element) {
   return find;
 }
 
-final Map<XWidget, X> _xs = weak.WeakMap<XWidget, X>();
+// final Map<XWidget, X> _xs = weak.WeakMap<XWidget, X>();
