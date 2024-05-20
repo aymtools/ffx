@@ -37,17 +37,26 @@ class X {
   }
 }
 
+class _XTarget {
+  WeakReference<X>? _x;
+}
+
 abstract class XWidget extends Widget {
-  const XWidget({super.key});
+  final _XTarget _xTarget = _XTarget();
+
+  XWidget({super.key});
 
   @protected
   Widget build(BuildContext context);
 
   @override
   XElement createElement() => XElement(this);
+
+  @protected
+  X get x => _xTarget._x!.target!;
 }
 
-extension XWidgetExt<W extends XWidget> on W {
-  @protected
-  X get x => _xs[this] as X;
-}
+// extension XWidgetExt<W extends XWidget> on W {
+//   @protected
+//   X get x => _xs[this] as X;
+// }

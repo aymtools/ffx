@@ -16,13 +16,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const FirstPage(),
+      home: FirstPage(),
     );
   }
 }
 
 class FirstPage extends XWidget {
-  const FirstPage({super.key});
+  FirstPage({super.key});
 
   @override
   Widget build(BuildContext context) {
