@@ -43,8 +43,7 @@ class _ModifierFx implements Modifier {
 }
 
 extension $ModifierFxExt on Modifier {
-  Modifier fx(Widget Function(X x, Widget child) fx) =>
-      CombinedModifier(inner: this, outer: _ModifierFx(fx));
+  Modifier fx(Widget Function(X x, Widget child) fx) => then(_ModifierFx(fx));
 }
 
 extension $PaddingModifier on Modifier {

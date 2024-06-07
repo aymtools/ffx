@@ -21,9 +21,9 @@ dependencies:
 
   collection: ^1.17.0
   cancellable: ^2.0.0
-  anlifecycle: ^2.0.1
+  anlifecycle: ^2.0.2
   weak_collections: ^1.1.0
-  an_lifecycle_cancellable: ^0.0.2
+  an_lifecycle_cancellable: ^0.0.3
 
 
   macros: ^0.1.0-main
