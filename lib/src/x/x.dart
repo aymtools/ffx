@@ -1,62 +1,39 @@
-import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:cancellable/cancellable.dart';
-import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:weak_collections/weak_collections.dart' as weak;
+import 'package:flutter/material.dart';
 
-part 'x_element.dart';
+part 'x_delegate.dart';
 
-part 'x_kit.dart';
+part 'x_ext.dart';
 
-class X {
-  X._();
+part 'x_state.dart';
 
-  BuildContext? _context;
+part 'x_widget.dart';
 
-  IX? _mockState;
-  LifecycleObserverRegistry? _lifecycleORegistry;
+abstract interface class X<W extends Widget> {
+  W get widget;
 
-  BuildContext get context => _context!;
+  BuildContext get context;
 
-  IX get mockState => _mockState!;
+  Cancellable get mountable;
 
-  LifecycleObserverRegistry get lifecycleORegistry => _lifecycleORegistry!;
+  Cancellable makeCancellable({Cancellable? father});
 
-  late final Cancellable _mountedCancellable =
-      _lifecycleORegistry?.makeLiveCancellable() ?? Cancellable();
+  void addOnChangeDependenciesListener(
+      void Function(Cancellable cancellable) listener,
+      {Cancellable? removable});
 
-  X? Function()? _parent;
+  void addOnActivateListener(void Function(Cancellable cancellable) listener,
+      {Cancellable? removable});
 
-  Cancellable get mountable => _mountedCancellable;
+  void addOnDeactivateListener(void Function(Cancellable cancellable) listener,
+      {Cancellable? removable});
 
-  X? get parent => _parent?.call();
-
-  void markNeedsBuild() {
-    Element element = context as Element;
-    element.markNeedsBuild();
-  }
+  void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
+      {Cancellable? removable});
 }
 
-class _XTarget {
-  WeakReference<X>? _x;
-}
-
-abstract class XWidget extends Widget {
-  final _XTarget _xTarget = _XTarget();
-
-  XWidget({super.key});
-
-  @protected
-  Widget build(BuildContext context);
-
-  @override
-  XElement createElement() => XElement(this);
-
-  @protected
-  X get x => _xTarget._x!.target!;
-}
-
-// extension XWidgetExt<W extends XWidget> on W {
-//   @protected
-//   X get x => _xs[this] as X;
-// }
+abstract interface class XLifecycle<W extends Widget>
+    implements LifecycleObserverRegistry, X<W> {}

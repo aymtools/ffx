@@ -1,5 +1,4 @@
-import 'package:ffx/src/ext/ext.dart';
-import 'package:ffx/src/x/x.dart';
+import 'package:ffx/ffx.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -106,8 +105,9 @@ extension CancellableStateExt on X {
   TickerProvider rememberTickerProvider() {
     final factoryTickerProvider = remember(() {
       _Maker maker = _Maker();
-      mountable.onCancel.then((value) => maker.dispose());
-      mockState.addOnActivateListener((_) {
+      onDispose(maker.dispose);
+      // mountable.onCancel.then((value) => maker.dispose());
+      addOnActivateListener((_) {
         maker.context = WeakReference(context);
         maker.activate();
       });
@@ -117,32 +117,15 @@ extension CancellableStateExt on X {
   }
 
   bool rememberKeepAlive(bool wantKeepAlive) {
-    remember(() {
-      KeepAliveHandle? handle;
-      void ensureKeepAlive() {
-        assert(handle == null);
-        handle = KeepAliveHandle();
-        KeepAliveNotification(handle!).dispatch(context);
-      }
-
-      void releaseKeepAlive() {
-        // Dispose and release do not imply each other.
-        handle!.dispose();
-        handle = null;
-      }
-
-      if (wantKeepAlive) {
-        if (handle == null) {
-          // assert(mounted);
-          ensureKeepAlive();
-        }
-      } else {
-        if (handle != null) {
-          releaseKeepAlive();
-        }
-      }
-      return handle;
-    }, key: ['wantKeepAlive']);
+    final wantKeepAliveHandle =
+        rememberValue(() => KeepAliveHandle(), listen: false);
+    final handle = wantKeepAliveHandle.value;
+    if (wantKeepAlive) {
+      KeepAliveNotification(handle).dispatch(context);
+    } else {
+      handle.dispose();
+      wantKeepAliveHandle.value = KeepAliveHandle();
+    }
     return wantKeepAlive;
   }
 
@@ -154,6 +137,7 @@ extension CancellableStateExt on X {
     double lowerBound = 0.0,
     double upperBound = 1.0,
     AnimationBehavior animationBehavior = AnimationBehavior.normal,
+    Object? key,
   }) {
     return remember(() {
       final result = AnimationController(
@@ -173,7 +157,8 @@ extension CancellableStateExt on X {
       reverseDuration,
       lowerBound,
       upperBound,
-      animationBehavior
+      animationBehavior,
+      key,
     ], listen: false);
   }
 
@@ -183,6 +168,7 @@ extension CancellableStateExt on X {
     Duration? reverseDuration,
     String? debugLabel,
     AnimationBehavior animationBehavior = AnimationBehavior.normal,
+    Object? key,
   }) {
     return remember(() {
       final result = AnimationController.unbounded(
@@ -194,15 +180,22 @@ extension CancellableStateExt on X {
           vsync: rememberTickerProvider());
       mountable.onCancel.then((value) => result.dispose());
       return result;
-    },
-        key: ['Unbounded', value, duration, reverseDuration, animationBehavior],
-        listen: false);
+    }, key: [
+      'Unbounded',
+      value,
+      duration,
+      reverseDuration,
+      animationBehavior,
+      key
+    ], listen: false);
   }
 
-  TabController rememberTabController(
-      {int initialIndex = 0,
-      Duration? animationDuration,
-      required int length}) {
+  TabController rememberTabController({
+    int initialIndex = 0,
+    Duration? animationDuration,
+    required int length,
+    Object? key,
+  }) {
     return remember(() {
       final result = TabController(
           initialIndex: initialIndex,
@@ -211,6 +204,6 @@ extension CancellableStateExt on X {
           vsync: rememberTickerProvider());
       mountable.onCancel.then((value) => result.dispose());
       return result;
-    }, key: [initialIndex, animationDuration, length], listen: false);
+    }, key: [initialIndex, animationDuration, length, key], listen: false);
   }
 }

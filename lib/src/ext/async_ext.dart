@@ -1,8 +1,8 @@
 import 'dart:async';
 
+import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:anlifecycle/anlifecycle.dart';
 import 'package:cancellable/cancellable.dart';
-import 'package:an_lifecycle_cancellable/an_lifecycle_cancellable.dart';
 import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/ext/f_ext.dart';
 import 'package:ffx/src/x/x.dart';
@@ -15,8 +15,7 @@ sealed class AsyncValue<T> {
 
   factory AsyncValue.waiting() => AsyncWaiting<T>();
 
-  factory AsyncValue.error(
-          {required Object? error, StackTrace? stackTrace}) =>
+  factory AsyncValue.error({required Object? error, StackTrace? stackTrace}) =>
       AsyncError<T>(error: error, stackTrace: stackTrace);
 
   factory AsyncValue.value(T value) => AsyncData(value);
@@ -96,8 +95,7 @@ extension XAsyncExt on X {
   AsyncValue<T> rememberAsyncValue<T>(Future<T> Function() value,
       {Object? key, bool toLocal = false}) {
     ValueNotifier<AsyncValue<T>> init() {
-      final result =
-          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
+      final result = mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
       final future = value();
       future
           .bindCancellable(mountable)
@@ -108,7 +106,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = XVKey<ValueNotifier<T>>(key: key);
+    final vk = TypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -130,14 +128,13 @@ extension XAsyncExt on X {
         key: key);
     ans.args = args;
     return rememberAsyncValueStream(() => ans.stream,
-        key: XVKey<T>(key: [key, Args]));
+        key: TypedKey<T>([key, Args]));
   }
 
   AsyncValue<T> rememberAsyncValueStream<T>(Stream<T> Function() value,
       {Object? key, bool toLocal = false, bool? cancelOnError}) {
     ValueNotifier<AsyncValue<T>> init() {
-      final result =
-          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
+      final result = mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
       final stream = value();
       stream.bindCancellable(mountable).listen(
             (event) {
@@ -152,7 +149,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = XVKey<ValueNotifier<T>>(key: key);
+    final vk = TypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -164,7 +161,9 @@ extension XAsyncExt on X {
     addToListenableSingleMarkNeedsBuildListener(r);
     return r.value;
   }
+}
 
+extension XLifecycleAsyncExt on XLifecycle {
   AsyncValue<T> rememberAsyncValueCollectOnLifecycle<T>(
       Future<T> Function() value,
       {Object? key,
@@ -172,9 +171,8 @@ extension XAsyncExt on X {
       bool? cancelOnError,
       LifecycleState targetState = LifecycleState.started}) {
     ValueNotifier<AsyncValue<T>> init() {
-      final result =
-          mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
-      final stream = lifecycleORegistry.collectOnLifecycle<T>(
+      final result = mutableStateWith<AsyncValue<T>>(AsyncValue<T>.waiting());
+      final stream = collectOnLifecycle<T>(
         block: (Cancellable cancellable) =>
             value().bindCancellable(cancellable),
         runWithDelayed: true,
@@ -193,7 +191,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = XVKey<ValueNotifier<T>>(key: key);
+    final vk = TypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {

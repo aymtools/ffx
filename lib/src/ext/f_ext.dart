@@ -1,3 +1,4 @@
+import 'package:anlifecycle/anlifecycle.dart';
 import 'package:ffx/src/ext/ext.dart';
 import 'package:ffx/src/x/x.dart';
 import 'package:flutter/material.dart';
@@ -29,31 +30,31 @@ extension XFExt on X {
         key: 'rootNavigator',
       );
 
-  ValueNotifier<T> rememberValue<T>(T Function() value) {
-    return rememberValueNotifier(mutableStateOf(value()));
+  ValueNotifier<T> rememberValue<T>(T Function() value, {bool listen = true}) {
+    return rememberValueNotifier(mutableStateOf(value()), listen: listen);
   }
 
   ValueNotifier<T> rememberValueNotifier<T>(ValueNotifier<T> Function() value,
-      {Object? key, bool toLocal = false}) {
-    final vk = XVKey<ValueNotifier<T>>(key: key);
+      {Object? key, bool toLocal = false, bool listen = true}) {
+    final vk = TypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<T> r;
     if (toLocal) {
-      r = remember2Local(value, key: vk);
+      r = remember2Local(value, key: vk, listen: listen);
     } else {
-      r = remember<ValueNotifier<T>>(value, key: vk);
+      r = remember<ValueNotifier<T>>(value, key: vk, listen: listen);
     }
-    addToListenableSingleMarkNeedsBuildListener(r);
     return r;
   }
 
-  ValueNotifier<T> findValueNotifier<T>({Object? key, bool inLocal = false}) {
+  ValueNotifier<T> findValueNotifier<T>(
+      {Object? key, bool inLocal = false, bool listen = true}) {
     ValueNotifier<T> r = find(
         key: key,
         inDependentValues: false,
         inLocalValues: inLocal,
-        inValues: !inLocal);
-    addToListenableSingleMarkNeedsBuildListener(r);
+        inValues: !inLocal,
+        listen: listen);
     return r;
   }
 
@@ -71,5 +72,22 @@ extension XFExt on X {
 
   T getByRouteMap<T>({required String key}) {
     return getByRoute<T, Map>(block: (a) => a[key]);
+  }
+}
+
+final Map<Lifecycle, Map<Object, Object>> _map = {};
+
+extension LifecycleProvider on LifecycleObserverRegistry {
+  T rememberToLifecycle<T extends Object>(
+      {Object? key, required T Function() creator}) {
+    assert(currentLifecycleState >= LifecycleState.created);
+    late T f;
+    final values = _map.putIfAbsent(lifecycle, () {
+      lifecycle.addObserver(LifecycleObserver.onEventDestroy(
+          (owner) => _map.remove(owner.lifecycle)));
+      return {};
+    });
+    f = values.putIfAbsent(TypedKey<T>(key), () => creator()) as T;
+    return f;
   }
 }
