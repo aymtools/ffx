@@ -13,20 +13,27 @@ abstract class XWidget extends Widget {
   Widget build(BuildContext context);
 
   @override
-  Element createElement() => _makeTypedElement();
+  Element createElement() => XElement(this);
 }
 
 extension XWidgetEx<W extends XWidget> on W {
-  XElement _makeTypedElement() => XElement<W>(this);
+  XLifecycle get x {
+    return _xKitCompanion.weakReferenceX?.target as XLifecycle;
+  }
 
-  XLifecycle<W> get x => _xKitCompanion.weakReferenceX?.target as XLifecycle<W>;
+  void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
+      {Cancellable? removable}) {
+    (x as XElement).addOnUpdateWidgetListener(
+        (w, old) => listener(w as W, old as W),
+        removable: removable);
+  }
 }
 
-mixin XElementMixin<W extends Widget> on ComponentElement implements X<W> {
+mixin XElementMixin on ComponentElement implements X {
   final Cancellable _cancellable = Cancellable();
 
-  late final XDelegate<W> _xDelegate =
-      XDelegate<W>(_cancellable.makeCancellable);
+  late final XDelegate<Widget> _xDelegate =
+      XDelegate<Widget>(_cancellable.makeCancellable);
 
   bool _isFirstBuild = true;
 
@@ -47,7 +54,7 @@ mixin XElementMixin<W extends Widget> on ComponentElement implements X<W> {
   }
 
   @override
-  void update(covariant W newWidget) {
+  void update(covariant Widget newWidget) {
     final oldWidget = widget;
     super.update(newWidget);
     _xDelegate.didUpdateWidget(oldWidget, newWidget);
@@ -88,8 +95,8 @@ mixin XElementMixin<W extends Widget> on ComponentElement implements X<W> {
           {Cancellable? removable}) =>
       _xDelegate.addOnDeactivateListener(listener, removable: removable);
 
-  @override
-  void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
+  void addOnUpdateWidgetListener(
+          void Function(Widget widget, Widget oldWidget) listener,
           {Cancellable? removable}) =>
       _xDelegate.addOnUpdateWidgetListener(listener, removable: removable);
 
@@ -101,13 +108,13 @@ mixin XElementMixin<W extends Widget> on ComponentElement implements X<W> {
   Cancellable get mountable => _xDelegate.mountable;
 }
 
-class XElement<XW extends XWidget> extends ComponentElement
-    with XElementMixin<XW>, LifecycleObserverRegistryElementMixin
-    implements XLifecycle<XW> {
-  XElement(XW super.widget);
+class XElement extends ComponentElement
+    with XElementMixin, LifecycleObserverRegistryElementMixin
+    implements XLifecycle {
+  XElement(XWidget super.widget);
 
   @override
-  XW get widget => super.widget as XW;
+  XWidget get widget => super.widget as XWidget;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -116,7 +123,7 @@ class XElement<XW extends XWidget> extends ComponentElement
   }
 
   @override
-  void update(covariant XW newWidget) {
+  void update(covariant XWidget newWidget) {
     newWidget._xKitCompanion.weakReferenceX = WeakReference(this);
     super.update(newWidget);
   }

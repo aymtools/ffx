@@ -1,6 +1,6 @@
 part of 'x.dart';
 
-mixin XStateMixin<W extends StatefulWidget> on State<W> implements X<W> {
+mixin XStateMixin<W extends StatefulWidget> on State<W> implements XState<W> {
   final Cancellable _cancellable = Cancellable();
 
   late final XDelegate<W> _xDelegate =
@@ -73,15 +73,14 @@ mixin XStateMixin<W extends StatefulWidget> on State<W> implements X<W> {
 }
 
 mixin XLifecycleStateMixin<W extends StatefulWidget> on State<W>
-    implements XLifecycle<W> {
+    implements XLifecycle, XState<W> {
   late final LifecycleObserverRegistryDelegate _lifecycleDelegate =
       LifecycleObserverRegistryDelegate(
           target: this, parentElementProvider: () => context as Element);
 
   final Cancellable _cancellable = Cancellable();
 
-  late final XDelegate<W> _xDelegate =
-      XDelegate<W>(_cancellable.makeCancellable);
+  late final XDelegate<W> _xDelegate = XDelegate(_cancellable.makeCancellable);
 
   @override
   void initState() {

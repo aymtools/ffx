@@ -53,7 +53,7 @@ final Map<Lifecycle, Map<Object, Object>> _map = {};
 
 weak.WeakMap<X, X> _parent = weak.WeakMap();
 
-extension XExtKit<W extends Widget> on X<W> {
+extension XExtKit on X {
   void markNeedsBuild() {
     final element = (context as Element);
     if (element.dirty) return;

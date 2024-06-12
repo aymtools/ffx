@@ -1,6 +1,6 @@
 part of 'x.dart';
 
-class XDelegate<W extends Widget> implements X<W> {
+class XDelegate<W extends Widget> implements X {
   final Cancellable Function() cancellableProvider;
   late final Cancellable _mountable;
 
@@ -120,7 +120,6 @@ class XDelegate<W extends Widget> implements X<W> {
   void dispose() {}
   Set<void Function(W widget, W oldWidget)>? _onUpdateWidget;
 
-  @override
   void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
       {Cancellable? removable}) {
     if (removable?.isAvailable != true) return;
@@ -149,7 +148,4 @@ class XDelegate<W extends Widget> implements X<W> {
 
   @override
   BuildContext get context => throw UnimplementedError();
-
-  @override
-  W get widget => throw UnimplementedError();
 }
