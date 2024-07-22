@@ -1,34 +1,5 @@
 part of 'x.dart';
 
-class _XCompanion {
-  WeakReference<XLifecycle>? weakReferenceX;
-}
-
-abstract class XWidget extends Widget {
-  final _XCompanion _xKitCompanion = _XCompanion();
-
-  XWidget({super.key});
-
-  @protected
-  Widget build(BuildContext context);
-
-  @override
-  Element createElement() => XElement(this);
-}
-
-extension XWidgetEx<W extends XWidget> on W {
-  XLifecycle get x {
-    return _xKitCompanion.weakReferenceX?.target as XLifecycle;
-  }
-
-  void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
-      {Cancellable? removable}) {
-    (x as XElement).addOnUpdateWidgetListener(
-        (w, old) => listener(w as W, old as W),
-        removable: removable);
-  }
-}
-
 mixin XElementMixin on ComponentElement implements X {
   final Cancellable _cancellable = Cancellable();
 
@@ -106,6 +77,35 @@ mixin XElementMixin on ComponentElement implements X {
 
   @override
   Cancellable get mountable => _xDelegate.mountable;
+}
+
+class _XCompanion {
+  WeakReference<XLifecycle>? weakReferenceX;
+}
+
+abstract class XWidget extends Widget {
+  final _XCompanion _xKitCompanion = _XCompanion();
+
+  XWidget({super.key});
+
+  @protected
+  Widget build(BuildContext context);
+
+  @override
+  Element createElement() => XElement(this);
+}
+
+extension XWidgetEx<W extends XWidget> on W {
+  XLifecycle get x {
+    return _xKitCompanion.weakReferenceX?.target as XLifecycle;
+  }
+
+  void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
+      {Cancellable? removable}) {
+    (x as XElement).addOnUpdateWidgetListener(
+        (w, old) => listener(w as W, old as W),
+        removable: removable);
+  }
 }
 
 class XElement extends ComponentElement

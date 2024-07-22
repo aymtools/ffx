@@ -1,9 +1,9 @@
 part of 'x.dart';
 
-class TypedKey<T> {
+class XTypedKey<T> {
   final Object? key;
 
-  TypedKey([this.key]);
+  XTypedKey([this.key]);
 
   @override
   int get hashCode => _equality.hash(this);
@@ -24,7 +24,7 @@ class TypedKeyEquality implements Equality<Object?> {
   @override
   bool equals(Object? e1, Object? e2) {
     if (identical(e1, e2)) return true;
-    if (e1 is TypedKey && e2 is TypedKey) {
+    if (e1 is XTypedKey && e2 is XTypedKey) {
       return e1._typed() == e2._typed() && _equality.equals(e1.key, e2.key);
     }
     return _base.equals(e1, e2);
@@ -32,7 +32,7 @@ class TypedKeyEquality implements Equality<Object?> {
 
   @override
   int hash(Object? e) {
-    if (e is TypedKey) {
+    if (e is XTypedKey) {
       return Object.hash(e._typed(), _equality.hash(e.key));
     }
     return _base.hash(e);
@@ -40,7 +40,7 @@ class TypedKeyEquality implements Equality<Object?> {
 
   @override
   bool isValidKey(Object? o) {
-    if (o is TypedKey) {
+    if (o is XTypedKey) {
       return true;
     }
     return _base.isValidKey(o);

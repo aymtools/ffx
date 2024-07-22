@@ -76,7 +76,7 @@ mixin XLifecycleStateMixin<W extends StatefulWidget> on State<W>
     implements XLifecycle, XState<W> {
   late final LifecycleObserverRegistryDelegate _lifecycleDelegate =
       LifecycleObserverRegistryDelegate(
-          target: this, parentElementProvider: () => context as Element);
+          target: this, contextProvider: () => context as Element);
 
   final Cancellable _cancellable = Cancellable();
 
@@ -160,7 +160,6 @@ mixin XLifecycleStateMixin<W extends StatefulWidget> on State<W>
   LifecycleState get currentLifecycleState =>
       _lifecycleDelegate.currentLifecycleState;
 
-  @override
   LO? findLifecycleObserver<LO extends LifecycleObserver>() =>
       _lifecycleDelegate.findLifecycleObserver<LO>();
 
