@@ -117,7 +117,6 @@ class XDelegate<W extends Widget> implements X {
     }
   }
 
-  void dispose() {}
   Set<void Function(W widget, W oldWidget)>? _onUpdateWidget;
 
   void addOnUpdateWidgetListener(void Function(W widget, W oldWidget) listener,
@@ -148,4 +147,8 @@ class XDelegate<W extends Widget> implements X {
 
   @override
   BuildContext get context => throw UnimplementedError();
+
+  void dispose() {
+    _mountable.cancel();
+  }
 }

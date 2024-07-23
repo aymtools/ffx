@@ -15,10 +15,23 @@ sealed class AsyncValue<T> {
 
   factory AsyncValue.waiting() => AsyncWaiting<T>();
 
-  factory AsyncValue.error({required Object? error, StackTrace? stackTrace}) =>
+  factory AsyncValue.error({required Object error, StackTrace? stackTrace}) =>
       AsyncError<T>(error: error, stackTrace: stackTrace);
 
   factory AsyncValue.value(T value) => AsyncData(value);
+
+  R when<R>(
+    R Function(T data) onData,
+    R Function() onWaiting,
+    R Function(Object error, StackTrace? stackTrace) onError,
+  ) {
+    return switch (this) {
+      AsyncData<T>(:final data) => onData(data),
+      AsyncWaiting<T>() => onWaiting(),
+      AsyncError<T>(:final error, :final stackTrace) =>
+        onError(error, stackTrace),
+    };
+  }
 }
 
 class AsyncData<T> extends AsyncValue<T> {
@@ -30,7 +43,7 @@ class AsyncData<T> extends AsyncValue<T> {
 class AsyncWaiting<T> extends AsyncValue<T> {}
 
 class AsyncError<T> extends AsyncValue<T> {
-  final Object? error;
+  final Object error;
   final StackTrace? stackTrace;
 
   AsyncError({required this.error, this.stackTrace});
@@ -100,13 +113,13 @@ extension XAsyncExt on X {
       future
           .bindCancellable(mountable)
           .then((v) => result.value = AsyncValue.value(v))
-          .onError((error, stackTrace) => result.value =
+          .onError<Object>((error, stackTrace) => result.value =
               AsyncValue.error(error: error, stackTrace: stackTrace))
           .ignore();
       return result;
     }
 
-    final vk = TypedKey<ValueNotifier<T>>(key);
+    final vk = XTypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -128,7 +141,7 @@ extension XAsyncExt on X {
         key: key);
     ans.args = args;
     return rememberAsyncValueStream(() => ans.stream,
-        key: TypedKey<T>([key, Args]));
+        key: XTypedKey<T>([key, Args]));
   }
 
   AsyncValue<T> rememberAsyncValueStream<T>(Stream<T> Function() value,
@@ -149,7 +162,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = TypedKey<ValueNotifier<T>>(key);
+    final vk = XTypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -191,7 +204,7 @@ extension XLifecycleAsyncExt on XLifecycle {
       return result;
     }
 
-    final vk = TypedKey<ValueNotifier<T>>(key);
+    final vk = XTypedKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
