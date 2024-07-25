@@ -36,7 +36,7 @@ extension XFExt on X {
 
   ValueNotifier<T> rememberValueNotifier<T>(ValueNotifier<T> Function() value,
       {Object? key, bool toLocal = false, bool listen = true}) {
-    final vk = XTypedKey<ValueNotifier<T>>(key);
+    final vk = XKey<ValueNotifier<T>>(key);
 
     ValueNotifier<T> r;
     if (toLocal) {
@@ -87,7 +87,7 @@ extension LifecycleProvider on LifecycleObserverRegistry {
           (owner) => _map.remove(owner.lifecycle)));
       return {};
     });
-    f = values.putIfAbsent(XTypedKey<T>(key), () => creator()) as T;
+    f = values.putIfAbsent(XKey<T>(key), () => creator()) as T;
     return f;
   }
 }

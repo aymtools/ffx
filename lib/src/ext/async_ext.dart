@@ -119,7 +119,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = XTypedKey<ValueNotifier<T>>(key);
+    final vk = XKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -141,7 +141,7 @@ extension XAsyncExt on X {
         key: key);
     ans.args = args;
     return rememberAsyncValueStream(() => ans.stream,
-        key: XTypedKey<T>([key, Args]));
+        key: XKey<T>([key, Args]));
   }
 
   AsyncValue<T> rememberAsyncValueStream<T>(Stream<T> Function() value,
@@ -162,7 +162,7 @@ extension XAsyncExt on X {
       return result;
     }
 
-    final vk = XTypedKey<ValueNotifier<T>>(key);
+    final vk = XKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
@@ -204,7 +204,7 @@ extension XLifecycleAsyncExt on XLifecycle {
       return result;
     }
 
-    final vk = XTypedKey<ValueNotifier<T>>(key);
+    final vk = XKey<ValueNotifier<T>>(key);
 
     ValueNotifier<AsyncValue<T>> r;
     if (toLocal) {
